@@ -15,21 +15,23 @@ public class Courier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
-    private String status;
-
-    // This maps directly to your PostGIS Geography column
     @Column(columnDefinition = "geography(Point, 4326)")
     private Point currentLocation;
 
-    @org.springframework.data.annotation.CreatedDate // Added this
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "status")
+    private String status;
 
     @LastModifiedDate
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
+
+    @org.springframework.data.annotation.CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
