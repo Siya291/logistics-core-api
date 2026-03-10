@@ -1,13 +1,14 @@
 package com.project.smartcitylogistics.config;
 
-import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
+import org.hibernate.engine.jdbc.connections.spi.AbstractDataSourceBasedMultiTenantConnectionProviderImpl;
 import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 @Component
-public class SchemaMultiTenantConnectionProvider implements MultiTenantConnectionProvider<String> {
+public class SchemaMultiTenantConnectionProvider extends AbstractDataSourceBasedMultiTenantConnectionProviderImpl<String> {
 
     private final DataSource dataSource;
 
@@ -18,39 +19,30 @@ public class SchemaMultiTenantConnectionProvider implements MultiTenantConnectio
     }
 
     @Override
+    protected DataSource selectAnyDataSource() {
+        return dataSource;
+    }
+
+    @Override
+    protected DataSource selectDataSource(String tenantIdentifier) {
+        return dataSource;
+    }
+
+    @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
-        Connection connection = dataSource.getConnection();
-        try (java.sql.Statement statement = connection.createStatement()) {
-            // This ensures both the tenant data AND the public PostGIS functions are visible
+        Connection connection = super.getConnection(tenantIdentifier);
+        // This is the "Magic" line that forces Postgres to look in the tenant schema
+        try (Statement statement = connection.createStatement()) {
             statement.execute("SET search_path TO " + tenantIdentifier + ", public");
-        } catch (SQLException e) {
-            connection.close(); // Safety first: close if the path switch fails
-            throw e;
         }
         return connection;
     }
 
     @Override
     public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-        try (java.sql.Statement statement = connection.createStatement()) {
-            statement.execute("SET search_path TO " + DEFAULT_SCHEMA + ", public");
-        } catch (SQLException e) {
-            // Just log it or ignore, the connection is closing anyway
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET search_path TO public");
         }
-        connection.close();
-    }
-
-    // Standard Hibernate overrides...
-    @Override public boolean supportsAggressiveRelease() { return false; }
-    @Override public boolean isUnwrappableAs(Class<?> unwrapType) { return false; }
-    @Override public <T> T unwrap(Class<T> unwrapType) { return null; }
-    @Override
-    public Connection getAnyConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
-
-    @Override
-    public void releaseAnyConnection(Connection connection) throws SQLException {
-        connection.close();
+        super.releaseConnection(tenantIdentifier, connection);
     }
 }
