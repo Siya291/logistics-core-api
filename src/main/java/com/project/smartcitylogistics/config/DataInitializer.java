@@ -1,50 +1,51 @@
 package com.project.smartcitylogistics.config;
 
 import com.project.smartcitylogistics.entity.Courier;
+import com.project.smartcitylogistics.entity.User;
 import com.project.smartcitylogistics.repository.CourierRepository;
+import com.project.smartcitylogistics.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Component
+@RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
     private final CourierRepository courierRepository;
-    // SRID 4326 is the standard for GPS (WGS84)
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
-
-    public DataInitializer(CourierRepository repository) {
-        this.courierRepository = repository;
-    }
 
     @Override
     @Transactional
     public void run(String... args) {
+        // 1. Setup Tenant
         TenantContext.setTenantId("vendor_delivery_co");
 
-        Courier courier = new Courier();
-        courier.setName("Flash Thompson");
-        courier.setStatus("ACTIVE");
-        // Coordinates for a test location (Longitude, Latitude)
-        courier.setCurrentLocation(factory.createPoint(new Coordinate(28.2293, -25.7479)));
+        // 2. Seed Courier
+        if (courierRepository.count() == 0) {
+            Courier courier = new Courier();
+            courier.setName("Flash Thompson");
+            courier.setStatus("ACTIVE");
+            courier.setCurrentLocation(factory.createPoint(new Coordinate(28.2293, -25.7479)));
+            courierRepository.save(courier);
+            System.out.println(">>> Initialized Test Courier!");
+        }
 
-        courierRepository.save(courier);
-        System.out.println(">>> Smart City Courier Saved with GPS Coordinates!");
-
-        // Defining a point
-        GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
-        Point searchPoint = factory.createPoint(new Coordinate(28.22, -25.75));
-
-        // Search within 5km (5000 meters)
-        List<Courier> nearby = courierRepository.findNearbyCouriers(searchPoint, 5000);
-
-        System.out.println(">>> Found " + nearby.size() + " couriers nearby!");
-        nearby.forEach(c -> System.out.println(" - " + c.getName()));
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setTenantId("vendor_delivery_co");
+            userRepository.save(admin);
+            System.out.println(">>> Initialized Admin User!");
+        }
     }
 }

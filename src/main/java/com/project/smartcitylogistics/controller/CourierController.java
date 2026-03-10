@@ -2,6 +2,7 @@ package com.project.smartcitylogistics.controller;
 
 import com.project.smartcitylogistics.dto.CourierDTO;
 import com.project.smartcitylogistics.repository.CourierRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/couriers")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class CourierController {
 
     private final CourierRepository courierRepository;

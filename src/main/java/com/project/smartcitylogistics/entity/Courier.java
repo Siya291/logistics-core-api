@@ -11,12 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @Table(name = "couriers")
 @EntityListeners(org.springframework.data.jpa.domain.support.AuditingEntityListener.class)
-public class Courier {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+public class Courier extends BaseEntity{
 
     @Column(name = "name")
     private String name;
