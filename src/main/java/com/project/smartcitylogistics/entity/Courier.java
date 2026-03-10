@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "couriers") // Multi-tenancy will handle the schema prefix
+@Table(name = "couriers")
 @EntityListeners(org.springframework.data.jpa.domain.support.AuditingEntityListener.class)
 public class Courier {
 
