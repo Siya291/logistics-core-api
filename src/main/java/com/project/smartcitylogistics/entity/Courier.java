@@ -9,14 +9,14 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "couriers")
+@Table(name = "couriers", schema = "vendor_delivery_co")
 @EntityListeners(org.springframework.data.jpa.domain.support.AuditingEntityListener.class)
 public class Courier extends BaseEntity{
 
     @Column(name = "name")
     private String name;
 
-    @Column(columnDefinition = "geography(Point, 4326)")
+    @Column(name = "current_location", columnDefinition = "geography(Point, 4326)")
     private Point currentLocation;
 
     @Column(name = "status")
