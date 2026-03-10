@@ -8,10 +8,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
-public interface CourierRepository extends JpaRepository<Courier, UUID> {
+public interface CourierRepository extends JpaRepository<Courier, Long> {
 
     /**
      * Finds all couriers within a specific radius of a point.
