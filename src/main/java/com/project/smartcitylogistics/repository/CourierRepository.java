@@ -17,4 +17,9 @@ public interface CourierRepository extends JpaRepository<Courier, Long> {
 
     @Query(value = "SELECT * FROM couriers c ORDER BY c.current_location <-> :point LIMIT 5", nativeQuery = true)
     List<Courier> findClosestFiveCouriers(@Param("point") Point point);
+
+    List<Courier> findByStatus(String status);
+
+    @Query(value = "SELECT * FROM couriers WHERE status = 'ACTIVE'", nativeQuery = true)
+    List<Courier> findAllAvailable();
 }

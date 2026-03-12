@@ -1,5 +1,6 @@
 package com.project.smartcitylogistics.controller;
 
+import com.project.smartcitylogistics.dto.CourierDTO;
 import com.project.smartcitylogistics.dto.GeoJsonCollection;
 import com.project.smartcitylogistics.entity.Courier;
 import com.project.smartcitylogistics.repository.CourierRepository;
@@ -42,5 +43,22 @@ public class CourierController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(GeoJsonCollection.of(features));
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<CourierDTO>> getAvailableCouriers() {
+        List<Courier> available = courierRepository.findByStatus("ACTIVE");
+
+        List<CourierDTO> dtos = available.stream()
+                .map(c -> new CourierDTO(
+                        c.getId(),
+                        c.getName(),
+                        c.getCurrentLocation().getY(),
+                        c.getCurrentLocation().getX(),
+                        c.getStatus()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 }
