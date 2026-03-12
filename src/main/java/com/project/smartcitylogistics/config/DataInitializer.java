@@ -36,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
     public void initializeData() {
         if (courierRepository.count() == 0) {
             Courier courier = new Courier();
-            courier.setName("Flash Thompson");
+            courier.setName("Siya Ngobeni");
             courier.setStatus("ACTIVE");
             courier.setCurrentLocation(factory.createPoint(new Coordinate(28.2293, -25.7479)));
             courierRepository.save(courier);
