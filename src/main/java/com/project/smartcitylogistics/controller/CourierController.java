@@ -2,6 +2,7 @@ package com.project.smartcitylogistics.controller;
 
 import com.project.smartcitylogistics.dto.CourierDTO;
 import com.project.smartcitylogistics.dto.GeoJsonCollection;
+import com.project.smartcitylogistics.dto.StatusUpdateDTO;
 import com.project.smartcitylogistics.entity.Courier;
 import com.project.smartcitylogistics.repository.CourierRepository;
 import com.project.smartcitylogistics.util.GeoJsonMapper;
@@ -72,6 +73,69 @@ public class CourierController {
                         c.getStatus()
                 )))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<CourierDTO>> getAllCouriers() {
+        List<Courier> all = courierRepository.findAll();
+
+        List<CourierDTO> dtos = all.stream()
+                .map(c -> new CourierDTO(
+                        c.getId(),
+                        c.getName(),
+                        c.getCurrentLocation().getY(),
+                        c.getCurrentLocation().getX(),
+                        c.getStatus()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    @PostMapping
+    public ResponseEntity<CourierDTO> createCourier(@RequestBody CourierDTO dto) {
+
+        Point point = factory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
+
+        Courier courier = new Courier();
+        courier.setName(dto.name());
+        courier.setStatus(dto.status());
+        courier.setCurrentLocation(point);
+
+        Courier saved = courierRepository.save(courier);
+
+        return ResponseEntity.ok(new CourierDTO(
+                saved.getId(),
+                saved.getName(),
+                saved.getCurrentLocation().getY(),
+                saved.getCurrentLocation().getX(),
+                saved.getStatus()
+        ));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<CourierDTO> updateStatus(@PathVariable Long id, @RequestBody StatusUpdateDTO statusDto) {
+        return courierRepository.findById(id).map(c -> {
+            // No more manual quote stripping needed!
+            c.setStatus(statusDto.status());
+            Courier saved = courierRepository.save(c);
+
+            return ResponseEntity.ok(new CourierDTO(
+                    saved.getId(),
+                    saved.getName(),
+                    saved.getCurrentLocation().getY(),
+                    saved.getCurrentLocation().getX(),
+                    saved.getStatus()));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourier(@PathVariable Long id) {
+        if (courierRepository.existsById(id)) {
+            courierRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
 }
