@@ -37,7 +37,6 @@ public class CourierController {
 
         List<Courier> couriers = courierRepository.findNearbyCouriers(searchPoint, distance);
 
-        // Convert List<Courier> to GeoJSON Features
         var features = couriers.stream()
                 .map(geoJsonMapper::toFeature)
                 .collect(Collectors.toList());
@@ -61,4 +60,18 @@ public class CourierController {
 
         return ResponseEntity.ok(dtos);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CourierDTO> getCourierById(@PathVariable Long id) {
+        return courierRepository.findById(id)
+                .map(c -> ResponseEntity.ok(new CourierDTO(
+                        c.getId(),
+                        c.getName(),
+                        c.getCurrentLocation().getY(),
+                        c.getCurrentLocation().getX(),
+                        c.getStatus()
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }
